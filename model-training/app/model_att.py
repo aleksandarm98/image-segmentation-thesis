@@ -44,30 +44,30 @@ class AttentionBlock(nn.Module):
 
 
 class AttentionUNet(nn.Module):
-    def __init__(self, in_channels=1, num_classes=1):
+    def __init__(self, hidden_size, in_channels=1, num_classes=1):
         super(AttentionUNet, self).__init__()
         # Downsampling path
-        self.enc1 = DoubleConv(in_channels, 64)
+        self.enc1 = DoubleConv(in_channels, hidden_size)
         self.pool1 = nn.MaxPool2d(2)
-        self.enc2 = DoubleConv(64, 128)
+        self.enc2 = DoubleConv(hidden_size, hidden_size*2)
         self.pool2 = nn.MaxPool2d(2)
-        self.enc3 = DoubleConv(128, 256)
+        self.enc3 = DoubleConv(hidden_size*2, hidden_size*4)
         self.pool3 = nn.MaxPool2d(2)
-        self.enc4 = DoubleConv(256, 512)
+        self.enc4 = DoubleConv(hidden_size*4, hidden_size*8)
 
         # Upsampling path
-        self.up4 = nn.ConvTranspose2d(512, 256, kernel_size=2, stride=2)
-        self.att4 = AttentionBlock(F_g=256, F_l=256, F_int=128)
-        self.dec4 = DoubleConv(512, 256)
-        self.up3 = nn.ConvTranspose2d(256, 128, kernel_size=2, stride=2)
-        self.att3 = AttentionBlock(F_g=128, F_l=128, F_int=64)
-        self.dec3 = DoubleConv(256, 128)
-        self.up2 = nn.ConvTranspose2d(128, 64, kernel_size=2, stride=2)
-        self.att2 = AttentionBlock(F_g=64, F_l=64, F_int=32)
-        self.dec2 = DoubleConv(128, 64)
+        self.up4 = nn.ConvTranspose2d(hidden_size * 8, hidden_size * 4, kernel_size=2, stride=2)
+        self.att4 = AttentionBlock(F_g=hidden_size * 4, F_l=hidden_size * 4, F_int=hidden_size * 2)
+        self.dec4 = DoubleConv(hidden_size * 8, hidden_size * 4)
+        self.up3 = nn.ConvTranspose2d(hidden_size * 4, hidden_size * 2, kernel_size=2, stride=2)
+        self.att3 = AttentionBlock(F_g=hidden_size * 2, F_l=hidden_size * 2, F_int=hidden_size)
+        self.dec3 = DoubleConv(hidden_size * 4, hidden_size * 2)
+        self.up2 = nn.ConvTranspose2d(hidden_size * 2, hidden_size, kernel_size=2, stride=2)
+        self.att2 = AttentionBlock(F_g=hidden_size, F_l=hidden_size, F_int=int(hidden_size / 2))
+        self.dec2 = DoubleConv(hidden_size * 2, hidden_size)
 
         # Output layer
-        self.final_conv = nn.Conv2d(64, num_classes, kernel_size=1)
+        self.final_conv = nn.Conv2d(hidden_size, num_classes, kernel_size=1)
 
     def forward(self, x):
         # Encoder part

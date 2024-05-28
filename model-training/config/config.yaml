@@ -1,25 +1,30 @@
 config:
   general:
     model-name: 'UnetPlusPlus'
-    dataset-name: 'UBEO'
+    dataset-name: 'combined'
   model:
     logging:
       ml-flow: False
       comet: True
-      comet-project-name: 'taxinomisis'
+      comet-project-name: 'taxinomisis_optuna_upp_grayscale'
       comet-workspace: 'aleksandarm98'
     parameters:
-      learning-rate: 0.00001
-      weight-decay: 0.01
-      dropout: 0.3
+      learning-rate: 0.0000498778212
+      weight-decay: 0.0000625938515
+      hidden-size: 32
+      dropout: 0.211
       patience: 5
       number-of-epochs: 50
       batch-size: 6
   input-paths:
-    train-images: 's3://{bucket_name}/images/{dataset_name}/train/processed-data/images/'
-    train-labels: 's3://{bucket_name}/images/{dataset_name}/train/processed-data/labels/'
-    validation-images: 's3://{bucket_name}/images/{dataset_name}/val/images/'
-    validation-labels: 's3://{bucket_name}/images/{dataset_name}/val/labels/'
+#    train-images: 's3://{bucket_name}/images/{dataset_name}/train/processed-data/images/'
+    train-images: 's3://{bucket_name}/prepared-data/grayscale/train/images/'
+    #train-labels: 's3://{bucket_name}/images/{dataset_name}/train/processed-data/labels/'
+    train-labels: 's3://{bucket_name}/prepared-data/grayscale/train/labels/'
+    validation-images: 's3://{bucket_name}/prepared-data/grayscale/val/images/'
+    #validation-images: 's3://{bucket_name}/images/{dataset_name}/val/images/'
+    validation-labels: 's3://{bucket_name}/prepared-data/grayscale/val/labels/'
+    #validation-labels: 's3://{bucket_name}/images/{dataset_name}/val/labels/'
 
   output-paths:
     model-path: 's3://{bucket_name}/models/{dataset_name}/models/{date}/{model_name}-{datetime}.pt'

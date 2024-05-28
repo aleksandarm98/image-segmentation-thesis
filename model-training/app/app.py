@@ -2,6 +2,7 @@ from config import Config
 from logger import Logger
 from utils import Utils
 from model import UNetPlusPlus
+from model_att import AttentionUNet
 from processing import ModelTraining
 from torch.utils.data import DataLoader
 from storage import CarotidUltrasoundDataset
@@ -15,7 +16,7 @@ def main():
     logger.info("Variables initialisation")
     config = Config()
     logger.info("Data loading")
-    train_dataset= CarotidUltrasoundDataset(config.s3fs, config.training_images_path, config.training_labels_path, True)
+    train_dataset = CarotidUltrasoundDataset(config.s3fs, config.training_images_path, config.training_labels_path, True)
     val_dataset = CarotidUltrasoundDataset(config.s3fs, config.validation_images_path, config.validation_labels_path, True)
     train_loader = DataLoader(train_dataset, batch_size=config.batch_size, shuffle=True, num_workers=config.num_workers)
     val_loader = DataLoader(val_dataset, batch_size=config.batch_size, shuffle=False)
@@ -29,10 +30,11 @@ def main():
     config.dropout = best_params['dropout_rate']
 
     logger.info("Model initialisation")
-    model = UNetPlusPlus()
+    #model = AttentionUNet(config.hidden_size)
 
     logger.info("Model training")
-    ModelTraining.train(model, train_loader, val_loader, config.s3fs, config)
+    #ModelTraining.train(model, train_loader, val_loader, config.s3fs, config)
+
 
     logger.info("Validation")
 

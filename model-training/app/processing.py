@@ -1,5 +1,5 @@
 import datetime
-
+import os
 import mlflow
 import torch
 import torch.nn as nn
@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 
 from io import BytesIO
 from logger import Logger
+from comet_ml import Experiment
 from torch.optim import lr_scheduler, Adam
 logger = Logger(__name__).get_logger()
 
@@ -27,13 +28,31 @@ class ModelTraining:
         """
         criterion = ModelTraining.bce_dice_loss
         optimizer = Adam(model.parameters(), lr=config.learning_rate, weight_decay=config.weight_decay)
-        # scheduler = lr_scheduler.CosineAnnealingLR(optimizer, T_max=10, eta_min=1e-6)
-        scheduler = lr_scheduler.ReduceLROnPlateau(optimizer, 'min', patience=2, factor=0.1)
+        scheduler = lr_scheduler.CosineAnnealingLR(optimizer, T_max=10, eta_min=1e-6)
+        # scheduler = lr_scheduler.ReduceLROnPlateau(optimizer, 'min', patience=2, factor=0.1)
+
+        experiment = Experiment(api_key=os.environ.get("COMET_SECRET_KEY"),
+                                project_name=config.project_name,
+                                workspace=config.workspace)
+
+        experiment.set_name(f"{config.model_name}-{config.dataset_name}-{config.date}")
 
         # with mlflow.start_run():
-        ModelTraining.train_model(model, train_loader, val_loader, s3fs, config, criterion, optimizer, scheduler)
+        #ModelTraining.train_model(model, train_loader, val_loader, s3fs, config, criterion, optimizer, scheduler)
 
-    def train_model(self,model, train_loader, val_loader, s3fs, config, criterion, optimizer, scheduler, experiment):
+        ModelTraining.train_model(
+            model=model,
+            train_loader=train_loader,
+            val_loader=val_loader,
+            s3fs=s3fs,
+            config=config,
+            criterion=criterion,
+            optimizer=optimizer,
+            scheduler=scheduler,
+            experiment=experiment
+        )
+
+    def train_model(self, model, train_loader, val_loader, s3fs, config, criterion, optimizer, scheduler, experiment):
         """
 
         :param model:
@@ -51,11 +70,13 @@ class ModelTraining:
         best_val_loss = float('inf')
         epochs_no_improve = 0
         train_loss_history = []
+       # val_loss_history = []
 
 
         if config.mlflow_logging:
             mlflow.start_run()
             mlflow.pytorch.autolog()
+
         if config.comet_logging:
             experiment.log_parameters(
                 {"number_of_epochs": config.number_of_epochs,
@@ -66,7 +87,9 @@ class ModelTraining:
                  "dropout": config.dropout,
                  "training_path": config.training_images_path,
                  "validation_path": config.validation_images_path,
-                 "model_name": config.model_name
+                 "model_name": config.model_name,
+                 "hidden_size": config.hidden_size,
+                 "batch_size": config.batch_size
                  })
 
         for epoch in range(config.number_of_epochs):
@@ -132,7 +155,7 @@ class ModelTraining:
 
         plt.figure(figsize=(10, 5))
         plt.plot(range(1, len(train_loss_history) + 1), train_loss_history, label='Train Loss')
-        plt.plot(range(1, len(self.val_loss_history) + 1), self.val_loss_history, label='Validation Loss')
+        plt.plot(range(1, len( self.val_loss_history) + 1),  self.val_loss_history, label='Validation Loss')
         plt.xlabel('Epochs')
         plt.ylabel('Loss')
         plt.title('Loss During Training')

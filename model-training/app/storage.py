@@ -24,7 +24,7 @@ class CarotidUltrasoundDataset(Dataset):
         self.transform_input = transform_input
         self.images = [file for file in self.s3fs.ls(image_path) if file.lower().endswith(('.png', '.jpg'))]
         # logger.info(self.images[0])
-        self.masks = [file.replace('data/images', 'data/labels').replace('val/images', 'val/labels').replace('.jpg', '.png') for file in self.images]
+        self.masks = [file.replace('/images', '/labels').replace('.jpg', '.png') for file in self.images]
         # logger.info(self.masks[0])
 
     def __len__(self):

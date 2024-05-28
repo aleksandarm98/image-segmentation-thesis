@@ -2,7 +2,6 @@ import os
 import s3fs
 import yaml
 from datetime import datetime
-from comet_ml import Experiment
 from torch import device, cuda
 
 
@@ -15,12 +14,6 @@ class Config:
 
         with open(os.environ.get('CONFIG_PATH', 'r')) as config_file:
             self.config = yaml.safe_load(config_file)
-
-        # self.comet_experiment = Experiment(api_key=os.environ.get("COMET_SECRET_KEY"),
-        #                                    project_name=self.config.get('config').get('model').get('logging').get(
-        #                                        'comet-project-name'),
-        #                                    workspace=self.config.get('config').get('model').get('logging').get(
-        #                                        'comet-workspace'))
 
         self.project_name = self.config.get('config').get('model').get('logging').get(
                                                    'comet-project-name')
@@ -40,21 +33,22 @@ class Config:
 
         self.dataset_name = self.config.get('config').get('general').get('dataset-name')
         self.training_images_path = self.config.get('config').get('input-paths').get('train-images').format(
-                                                                                    bucket_name=self.bucket_name,
-                                                                                    dataset_name=self.dataset_name)
+                                                                                    bucket_name=self.bucket_name)#,
+                                                                                    #dataset_name=self.dataset_name)
         self.training_labels_path = self.config.get('config').get('input-paths').get('train-labels').format(
-                                                                                    bucket_name=self.bucket_name,
-                                                                                    dataset_name=self.dataset_name)
+                                                                                    bucket_name=self.bucket_name)#,
+                                                                                    # dataset_name=self.dataset_name)
         self.validation_images_path = self.config.get('config').get('input-paths').get('validation-images').format(
-                                                                                    bucket_name=self.bucket_name,
-                                                                                    dataset_name=self.dataset_name)
+                                                                                    bucket_name=self.bucket_name)#,
+                                                                                    # dataset_name=self.dataset_name)
         self.validation_labels_path = self.config.get('config').get('input-paths').get('validation-labels').format(
-                                                                                    bucket_name=self.bucket_name,
-                                                                                    dataset_name=self.dataset_name)
+                                                                                    bucket_name=self.bucket_name)#,
+                                                                                    # dataset_name=self.dataset_name)
 
         # Model parameters
         self.model_name = self.config.get('config').get('general').get('model-name')
         self.weight_decay = self.config.get('config').get('model').get('parameters').get('weight-decay')
+        self.hidden_size = self.config.get('config').get('model').get('parameters').get('hidden-size')
         self.learning_rate = self.config.get('config').get('model').get('parameters').get('learning-rate')
         self.dropout = self.config.get('config').get('model').get('parameters').get('dropout')
         self.number_of_epochs = self.config.get('config').get('model').get('parameters').get('number-of-epochs')

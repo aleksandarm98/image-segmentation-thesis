@@ -23,28 +23,28 @@ class DoubleConv(nn.Module):
 
 
 class UNetPlusPlus(nn.Module):
-    def __init__(self, in_channels=1, num_classes=1):
+    def __init__(self, hidden_size, in_channels=1, num_classes=1):
         super(UNetPlusPlus, self).__init__()
-        self.dc1 = DoubleConv(in_channels, 64)
-        self.dc2 = DoubleConv(64, 128)
-        self.dc3 = DoubleConv(128, 256)
-        self.dc4 = DoubleConv(256, 512)
-        self.dc5 = DoubleConv(512, 1024)
+        self.dc1 = DoubleConv(in_channels, hidden_size)
+        self.dc2 = DoubleConv(hidden_size, hidden_size*2)
+        self.dc3 = DoubleConv(hidden_size*2, hidden_size*4)
+        self.dc4 = DoubleConv(hidden_size*4, hidden_size*8)
+        self.dc5 = DoubleConv(hidden_size*8, hidden_size*16)
 
         self.pool = nn.MaxPool2d(2)
         self.upsample = nn.Upsample(scale_factor=2, mode='bilinear', align_corners=True)
 
-        self.dc12 = DoubleConv(64 + 128, 64)
-        self.dc23 = DoubleConv(128 + 256, 128)
-        self.dc34 = DoubleConv(256 + 512, 256)
-        self.dc45 = DoubleConv(512 + 1024, 512)
+        self.dc12 = DoubleConv(hidden_size + hidden_size*2, hidden_size)
+        self.dc23 = DoubleConv(hidden_size*2 + hidden_size*4, hidden_size*2)
+        self.dc34 = DoubleConv(hidden_size*4 + hidden_size*8, hidden_size*4)
+        self.dc45 = DoubleConv(hidden_size*8 + hidden_size*16, hidden_size*8)
 
-        self.dc_up4 = DoubleConv(1024 + 512 + 512, 512)
-        self.dc_up3 = DoubleConv(512 + 256 + 256, 256)
-        self.dc_up2 = DoubleConv(256 + 128 + 128, 128)
-        self.dc_up1 = DoubleConv(128 + 64 + 64, 64)
+        self.dc_up4 = DoubleConv(hidden_size*16 + hidden_size*8 + hidden_size*8, hidden_size*8)
+        self.dc_up3 = DoubleConv(hidden_size*8 + hidden_size*4 + hidden_size*4, hidden_size*4)
+        self.dc_up2 = DoubleConv(hidden_size*4 + hidden_size*2 + hidden_size*2, hidden_size*2)
+        self.dc_up1 = DoubleConv(hidden_size*2 + hidden_size + hidden_size, hidden_size)
 
-        self.final_conv = nn.Conv2d(64, num_classes, kernel_size=1)
+        self.final_conv = nn.Conv2d(hidden_size, num_classes, kernel_size=1)
 
     def forward(self, x):
         x1 = self.dc1(x)
